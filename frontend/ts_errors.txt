@@ -1,0 +1,74 @@
+src/App.tsx(2,10): error TS6133: 'AuthProvider' is declared but its value is never read.
+src/components/Header.tsx(1,67): error TS6133: 'Loader2' is declared but its value is never read.
+src/components/Header.tsx(32,9): error TS6133: 'location' is declared but its value is never read.
+src/components/dashboard/AnatomyMap.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/AssessmentForm.tsx(730,26): error TS6133: 'idx' is declared but its value is never read.
+src/components/dashboard/BranchModal.tsx(2,40): error TS6133: 'Image' is declared but its value is never read.
+src/components/dashboard/CollectionStatus.tsx(1,20): error TS6133: 'useEffect' is declared but its value is never read.
+src/components/dashboard/EditPatient.tsx(2,13): error TS6133: 'Save' is declared but its value is never read.
+src/components/dashboard/PelvicAssessmentForm.tsx(3,3): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/components/dashboard/PelvicAssessmentForm.tsx(4,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+src/components/dashboard/PelvicAssessmentForm.tsx(5,3): error TS6133: 'Save' is declared but its value is never read.
+src/components/dashboard/PelvicAssessmentForm.tsx(8,3): error TS6133: 'ClipboardList' is declared but its value is never read.
+src/components/dashboard/RecentPatients.tsx(4,1): error TS6133: 'isWithinTimeRange' is declared but its value is never read.
+src/components/dashboard/RecentPatients.tsx(7,26): error TS6133: 'timeRange' is declared but its value is never read.
+src/components/dashboard/StaffModal.tsx(2,38): error TS6133: 'Briefcase' is declared but its value is never read.
+src/components/dashboard/StaffModal.tsx(2,49): error TS6133: 'Building2' is declared but its value is never read.
+src/context/AuthContext.tsx(1,54): error TS6133: 'useEffect' is declared but its value is never read.
+src/pages/Admissions.tsx(26,11): error TS2339: Property 'admittedPatients' does not exist on type 'AppDataContextType'.
+src/pages/Admissions.tsx(26,39): error TS2339: Property 'rooms' does not exist on type 'AppDataContextType'.
+src/pages/Admissions.tsx(26,53): error TS2339: Property 'addAdmittedPatient' does not exist on type 'AppDataContextType'.
+src/pages/Admissions.tsx(60,89): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/Admissions.tsx(68,78): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/pages/Admissions.tsx(76,92): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/pages/Admissions.tsx(76,97): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/Admissions.tsx(84,89): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/Admissions.tsx(90,90): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/Admissions.tsx(94,90): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/Appointments.tsx(20,1): error TS6133: 'apiService' is declared but its value is never read.
+src/pages/AttendancePayroll.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/AttendancePayroll.tsx(6,10): error TS6133: 'Calendar' is declared but its value is never read.
+src/pages/AttendancePayroll.tsx(6,84): error TS6133: 'User' is declared but its value is never read.
+src/pages/AttendancePayroll.tsx(63,10): error TS6133: 'error' is declared but its value is never read.
+src/pages/Branches.tsx(7,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/pages/Branches.tsx(8,3): error TS6133: 'TrendingDown' is declared but its value is never read.
+src/pages/Branches.tsx(9,3): error TS6133: 'MoreVertical' is declared but its value is never read.
+src/pages/Branches.tsx(11,3): error TS6133: 'Users' is declared but its value is never read.
+src/pages/Branches.tsx(12,3): error TS6133: 'HeartPulse' is declared but its value is never read.
+src/pages/Branches.tsx(13,3): error TS6133: 'IndianRupee' is declared but its value is never read.
+src/pages/Branches.tsx(15,3): error TS6133: 'LayoutGrid' is declared but its value is never read.
+src/pages/Branches.tsx(16,11): error TS6133: 'ListIcon' is declared but its value is never read.
+src/pages/Branches.tsx(19,15): error TS6196: 'ClinicBranch' is declared but never used.
+src/pages/Branches.tsx(23,52): error TS6133: 'allStaff' is declared but its value is never read.
+src/pages/Branches.tsx(23,72): error TS6133: 'allPatients' is declared but its value is never read.
+src/pages/Branches.tsx(23,95): error TS6133: 'allInvoices' is declared but its value is never read.
+src/pages/Branches.tsx(48,9): error TS6133: 'getStatusColor' is declared but its value is never read.
+src/pages/Dashboard.tsx(8,1): error TS6133: 'apiService' is declared but its value is never read.
+src/pages/LivePatients.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/LivePatients.tsx(4,20): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/LivePatients.tsx(4,41): error TS6133: 'User' is declared but its value is never read.
+src/pages/PatientDetails.tsx(11,3): error TS6133: 'ClipboardList' is declared but its value is never read.
+src/pages/PatientDetails.tsx(20,1): error TS6133: 'apiService' is declared but its value is never read.
+src/pages/Reports.tsx(4,15): error TS6133: 'RechartsBarChart' is declared but its value is never read.
+src/pages/Reports.tsx(5,3): error TS6133: 'Bar' is declared but its value is never read.
+src/pages/Reports.tsx(20,3): error TS6133: 'Calendar' is declared but its value is never read.
+src/pages/Reports.tsx(29,3): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/pages/Reports.tsx(47,10): error TS6133: 'isLoading' is declared but its value is never read.
+src/pages/Reports.tsx(48,10): error TS6133: 'isExporting' is declared but its value is never read.
+src/pages/Reports.tsx(48,23): error TS6133: 'setIsExporting' is declared but its value is never read.
+src/pages/Settings.tsx(3,82): error TS6133: 'LogOut' is declared but its value is never read.
+src/pages/Staff.tsx(7,3): error TS6133: 'MoreVertical' is declared but its value is never read.
+src/pages/Staff.tsx(9,3): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/Staff.tsx(15,3): error TS6133: 'Activity' is declared but its value is never read.
+src/pages/Staff.tsx(16,3): error TS6133: 'Receipt' is declared but its value is never read.
+src/pages/Staff.tsx(29,25): error TS6196: 'AttendanceStatus' is declared but never used.
+src/pages/Staff.tsx(29,43): error TS6196: 'ShiftType' is declared but never used.
+src/pages/Staff.tsx(32,1): error TS6133: 'apiService' is declared but its value is never read.
+src/pages/Staff.tsx(1388,10): error TS6133: 'BarChart' is declared but its value is never read.
+src/pages/Staff.tsx(1400,10): error TS6133: 'ChevronUp' is declared but its value is never read.
+src/services/patientService.ts(2,1): error TS6133: 'Patient' is declared but its value is never read.
+src/services/staffService.ts(2,1): error TS6133: 'StaffMember' is declared but its value is never read.
+src/utils/pdfGenerator.ts(78,9): error TS6133: 'drawText' is declared but its value is never read.
+src/utils/pdfGenerator.ts(367,11): error TS6133: 'mapY' is declared but its value is never read.
+src/utils/pdfGenerator.ts(708,9): error TS6133: 'drawSection' is declared but its value is never read.
+src/utils/pdfGenerator.ts(714,9): error TS6133: 'drawRow' is declared but its value is never read.
