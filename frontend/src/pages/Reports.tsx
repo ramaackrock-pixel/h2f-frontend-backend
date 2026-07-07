@@ -36,10 +36,10 @@ import { reportService } from '@/services/reportService';
 export function Reports() {
   const { branches } = useAppData();
   const { user } = useAuth();
-  
+
   const isSuperAdmin = user?.role === 'superadmin';
   const defaultFilter = isSuperAdmin ? '1Y' : 'TODAY';
-  
+
   const [timeFilter, setTimeFilter] = useState(defaultFilter);
   const [selectedBranch, setSelectedBranch] = useState('All Branches');
   const [patients, setPatients] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export function Reports() {
   const collectionTrends = useMemo(() => {
     const monthlyData: Record<string, { collected: number; target: number }> = {};
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+
     // Get target from localStorage (same as CollectionStatus.tsx)
     const savedTarget = localStorage.getItem('globalGoalTarget');
     const globalTarget = savedTarget ? parseInt(savedTarget, 10) : 1000000;
@@ -177,7 +177,7 @@ export function Reports() {
         // patient.branch could be a branch ID or branch Name. Try to match it.
         const branchMatch = branches.find(b => b.id === patient.branch || b.name === patient.branch);
         const branchName = branchMatch ? branchMatch.name : (patient.branch || 'Unknown');
-        
+
         if (!branchRevenues[branchName]) branchRevenues[branchName] = 0;
         if (!branchPatientCounts[branchName]) branchPatientCounts[branchName] = new Set();
 
@@ -222,7 +222,7 @@ export function Reports() {
             <p className="text-slate-500 mt-1">Institutional performance and clinical insights</p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto print:hidden">
-            
+
             {/* Branchwise Filter Dropdown - Only visible to superadmin */}
             {isSuperAdmin && (
               <div className="relative w-full sm:w-auto">
@@ -261,7 +261,7 @@ export function Reports() {
               </div>
             )}
 
-            <button 
+            <button
               onClick={handleExportReport}
               className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#5ab2b2] hover:bg-[#4a9f9f] text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-teal-500/20 active:scale-95 group"
             >

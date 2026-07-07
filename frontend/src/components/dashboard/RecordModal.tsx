@@ -3,6 +3,8 @@ import Select from 'react-select';
 import { X, Save, FileText, User } from 'lucide-react';
 import { useAppData } from '@/context/AppDataContext';
 import type { MedicalRecordType } from '@/types/medicalRecord';
+import toast from 'react-hot-toast';
+import { compressImage } from '@/utils/imageCompressor';
 
 interface RecordModalProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ export default function RecordModal({ isOpen, onClose, onSave }: RecordModalProp
     fileName: '',
     fileObj: null,
     doctor: '',
-    uploadedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    uploadedDate: new Date().toISOString(),
     branch: ''
   });
 
@@ -32,7 +34,7 @@ export default function RecordModal({ isOpen, onClose, onSave }: RecordModalProp
         fileName: '',
         fileObj: null,
         doctor: doctors[0]?.name || '',
-        uploadedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        uploadedDate: new Date().toISOString(),
         branch: ''
       });
     }
@@ -61,7 +63,7 @@ export default function RecordModal({ isOpen, onClose, onSave }: RecordModalProp
       alert("Please select a file to upload.");
       return;
     }
-    
+
     if (formData.fileObj) {
       const data = new FormData();
       data.append('patientName', formData.patientName);
@@ -185,7 +187,7 @@ export default function RecordModal({ isOpen, onClose, onSave }: RecordModalProp
 
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload File</label>
-              <div 
+              <div
                 onClick={() => document.getElementById('record-upload')?.click()}
                 className="relative border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center space-y-3 cursor-pointer hover:border-[#5ab2b2] hover:bg-teal-50/30 transition-all group"
               >
@@ -201,14 +203,26 @@ export default function RecordModal({ isOpen, onClose, onSave }: RecordModalProp
                   type="file"
                   accept="image/png, image/jpeg, application/pdf"
                   className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const tempUrl = URL.createObjectURL(file);
-                      setFormData((prev: any) => ({ 
-                        ...prev, 
-                        fileName: file.name,
-                        fileObj: file,
+                  onChange={async (e) => {
+                    const selectedFile = e.target.files?.[0];
+                    if (selectedFile) {
+                      let processedFile = selectedFile;
+
+                      if (processedFile.type.startsWith('image/')) {
+                        if (processedFile.size > 1024 * 1024) {
+                          toast.loading('Compressing large image...', { id: 'compression' });
+                          processedFile = await compressImage(processedFile, 1);
+                          toast.dismiss('compression');
+                          toast.success('Image compressed successfully for upload.');
+                        }
+                      }
+                      // PDFs bypass compression and are sent straight to the backend
+
+                      const tempUrl = URL.createObjectURL(processedFile);
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        fileName: processedFile.name,
+                        fileObj: processedFile,
                         fileUrl: tempUrl
                       }));
                     }

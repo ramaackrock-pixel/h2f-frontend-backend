@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getRecords, createRecord, deleteRecord } from '../controller/medicalRecord.controller.js';
+import { getRecords, createRecord, deleteRecord, uploadChunk } from '../controller/medicalRecord.controller.js';
 import { verifyJWT } from '../middleware/auth.middleware.js';
 import path from 'path';
 
@@ -37,6 +37,10 @@ router.use(verifyJWT);
 router.route('/')
   .get(getRecords)
   .post(upload.single('file'), createRecord);
+
+// Add chunk upload endpoint
+router.route('/chunk')
+  .post(upload.single('chunk'), uploadChunk);
 
 router.route('/:id')
   .delete(deleteRecord);

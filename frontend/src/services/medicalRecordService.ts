@@ -25,6 +25,11 @@ export const medicalRecordService = {
     }
   },
 
+  uploadChunk: async (chunkData: FormData) => {
+    const response = await apiClient.post('/records/chunk', chunkData);
+    return response.data;
+  },
+
   delete: async (id: string) => {
     await apiService.delete(`/records/${id}`);
   }

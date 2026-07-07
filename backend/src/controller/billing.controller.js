@@ -162,3 +162,29 @@ export const updateInvoice = async (req, res) => {
         });
     }
 };
+
+// Delete an invoice
+export const deleteInvoice = async (req, res) => {
+    try {
+        const invoice = await Billing.findById(req.params.id);
+        if (!invoice) {
+            return res.status(404).json({
+                success: false,
+                message: "Invoice not found"
+            });
+        }
+
+        await Billing.findByIdAndDelete(req.params.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Invoice deleted successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error deleting invoice",
+            error: error.message
+        });
+    }
+};

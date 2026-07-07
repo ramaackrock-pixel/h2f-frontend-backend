@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout';
 import { apiService } from '@/services/apiService';
 import { Activity, Clock, Play, Square, User, Calendar, CheckCircle2, AlertCircle, Loader2, ArrowRight, ChevronDown, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '@/context/AppDataContext';
 
@@ -88,14 +89,15 @@ export function LivePatients() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'ALL' | 'SCHEDULED' | 'CHECKED_IN' | 'CHECKED_OUT'>('ALL');
   const [branchFilter, setBranchFilter] = useState('All Branches');
+  const navigate = useNavigate();
 
   const fetchTodayAppointments = async () => {
     try {
       const todayStr = new Date().toISOString().split('T')[0];
       const data = await apiService.get(`/appointments?date=${todayStr}`);
       if (data.success) {
-        const confirmedAppointments = (data.appointments || []).filter((a: any) => a.status === 'CONFIRMED');
-        setAppointments(confirmedAppointments);
+        const activeAppointments = (data.appointments || []).filter((a: any) => a.status === 'CONFIRMED' || a.status === 'COMPLETED');
+        setAppointments(activeAppointments);
       }
     } catch (error) {
       console.error('Error loading live telemetry:', error);
@@ -124,12 +126,16 @@ export function LivePatients() {
     }
   };
 
-  const handleCheckout = async (id: string) => {
+  const handleCheckout = async (appt: Appointment) => {
     try {
-      const res = await apiService.patch(`/appointments/${id}/checkout`, {});
+      const res = await apiService.patch(`/appointments/${appt._id}/checkout`, {});
       if (res.success) {
         toast.success("Checkout successful. No further action needed.");
         fetchTodayAppointments();
+        
+        if (window.confirm(`Checkout successful!\n\nWould you like to create a follow-up appointment for ${appt.patientName} now?`)) {
+          navigate('/appointments');
+        }
       }
     } catch (error) {
       console.error(error);
@@ -363,7 +369,7 @@ export function LivePatients() {
                           <span className="uppercase tracking-wider">15m</span>
                         </button>
                         <button
-                          onClick={() => handleCheckout(appt._id)}
+                          onClick={() => handleCheckout(appt)}
                           className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 px-4 rounded-xl transition-all shadow-sm shadow-emerald-600/10 hover:shadow-lg group"
                         >
                           <Square size={12} className="fill-white" />

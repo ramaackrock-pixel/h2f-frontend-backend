@@ -675,6 +675,16 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
   // Top Right: INVOICE
   page.drawText('INVOICE', { x: width - margin - 100, y: height - 60, size: 22, font: timesBoldFont, color: rgb(0.2, 0.2, 0.2) });
 
+  if (invoice.billingType === 'PENDING DUES') {
+    page.drawText('PAST DUES SETTLEMENT', {
+      x: width - margin - 135,
+      y: height - 76,
+      size: 10,
+      font: timesBoldFont,
+      color: rgb(0.9, 0.2, 0.2)
+    });
+  }
+
   // Branch Details (Positioned below the centered logo)
   const branchY = height - 100;
   const col1X = margin;
@@ -770,8 +780,8 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
   const pkgs = getArray(invoice.packageCategory);
   const sess = getArray(invoice.sessions);
 
-  const isService = invoice.billingType === 'SERVICE' || (!invoice.billingType && (selectedServices.length > 0 || selectedSubServices.length > 0));
-  const isPackage = invoice.billingType === 'PACKAGE' || (!invoice.billingType && (pkgs.length > 0 || sess.length > 0));
+  const isService = invoice.billingType === 'SERVICE' || (invoice.billingType === 'PENDING DUES' && (selectedServices.length > 0 || selectedSubServices.length > 0)) || (!invoice.billingType && (selectedServices.length > 0 || selectedSubServices.length > 0));
+  const isPackage = invoice.billingType === 'PACKAGE' || (invoice.billingType === 'PENDING DUES' && (pkgs.length > 0 || sess.length > 0)) || (!invoice.billingType && (pkgs.length > 0 || sess.length > 0));
 
   if (isService) {
     if (selectedServices.length > 0) {
@@ -783,28 +793,30 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
         if (svcDef) {
           const matchingSubs = selectedSubServices.filter(sub => svcDef.subServices.includes(sub));
           matchingSubs.forEach(sub => {
-             if (!printedSubs.has(sub)) {
-                 serviceLines.push({ text: `- ${sub}`, isSub: true });
-                 printedSubs.add(sub);
-             }
+            if (!printedSubs.has(sub)) {
+              serviceLines.push({ text: `- ${sub}`, isSub: true });
+              printedSubs.add(sub);
+            }
           });
         }
       });
 
       selectedSubServices.forEach(sub => {
-         if (!printedSubs.has(sub)) {
-            serviceLines.push({ text: `- ${sub}`, isSub: true });
-            printedSubs.add(sub);
-         }
+        if (!printedSubs.has(sub)) {
+          serviceLines.push({ text: `- ${sub}`, isSub: true });
+          printedSubs.add(sub);
+        }
       });
 
     } else if (selectedSubServices.length > 0) {
-       serviceLines.push({ text: 'Service', isSub: false });
-       selectedSubServices.forEach(sub => serviceLines.push({ text: `- ${sub}`, isSub: true }));
+      serviceLines.push({ text: 'Service', isSub: false });
+      selectedSubServices.forEach(sub => serviceLines.push({ text: `- ${sub}`, isSub: true }));
     } else {
-       serviceLines.push({ text: 'Service', isSub: false });
+      serviceLines.push({ text: 'Service', isSub: false });
     }
-  } else if (isPackage) {
+  }
+
+  if (isPackage) {
     if (pkgs.length > 0) {
       const printedSess = new Set<string>();
 
@@ -812,31 +824,37 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
         serviceLines.push({ text: pkg, isSub: false });
         const pkgDef = allPackages?.find(p => p.name === pkg);
         if (pkgDef) {
-           const matchingSess = sess.filter(s => pkgDef.sessions.includes(s));
-           matchingSess.forEach(s => {
-               if (!printedSess.has(s)) {
-                   serviceLines.push({ text: `- ${s}`, isSub: true });
-                   printedSess.add(s);
-               }
-           });
+          const matchingSess = sess.filter(s => pkgDef.sessions.includes(s));
+          matchingSess.forEach(s => {
+            if (!printedSess.has(s)) {
+              serviceLines.push({ text: `- ${s}`, isSub: true });
+              printedSess.add(s);
+            }
+          });
         }
       });
 
       sess.forEach(s => {
-         if (!printedSess.has(s)) {
-             serviceLines.push({ text: `- ${s}`, isSub: true });
-             printedSess.add(s);
-         }
+        if (!printedSess.has(s)) {
+          serviceLines.push({ text: `- ${s}`, isSub: true });
+          printedSess.add(s);
+        }
       });
     } else if (sess.length > 0) {
-       serviceLines.push({ text: 'Package', isSub: false });
-       sess.forEach(s => serviceLines.push({ text: `- ${s}`, isSub: true }));
+      serviceLines.push({ text: 'Package', isSub: false });
+      sess.forEach(s => serviceLines.push({ text: `- ${s}`, isSub: true }));
     } else {
-       serviceLines.push({ text: 'Package', isSub: false });
+      serviceLines.push({ text: 'Package', isSub: false });
     }
-  } else if (invoice.patientName) {
-    // Fallback for older invoices
-    serviceLines.push({ text: "Clinical Consultation / Treatment", isSub: false });
+  }
+
+  if (!isService && !isPackage) {
+    if (invoice.billingType === 'PENDING DUES') {
+      serviceLines.push({ text: "Past Dues Settlement (Receipt)", isSub: false });
+    } else if (invoice.patientName) {
+      // Fallback for older invoices
+      serviceLines.push({ text: "Clinical Consultation / Treatment", isSub: false });
+    }
   }
 
   serviceLines.forEach((line, index) => {
@@ -849,7 +867,7 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
       currentY -= 12;
     }
   });
-  
+
   if (invoice.brace) {
     currentY -= 12;
     page.drawText(`Brace: ${invoice.brace}`, { x: margin + 15, y: currentY, size: 8, font: timesRomanFont, color: rgb(0.4, 0.4, 0.4) });
@@ -886,41 +904,41 @@ export const generateInvoicePDF = async (invoice: any, allServices?: any[], allP
 
   const drawSummaryRow = (label: string, value: string, y: number, isBold = false, customValueX?: number) => {
     page.drawText(label, { x: rightLabelX, y: y, size: 9, font: timesBoldFont, color: rgb(0.2, 0.2, 0.2) });
-    
+
     const fontToUse = isBold ? timesBoldFont : timesRomanFont;
     const valX = customValueX || rightValueX;
     const maxValWidth = width - margin - valX + 30; // Max width before wrapping
-    
+
     const words = value.split(' ');
     let currentLine = '';
     let currentY = y;
-    
+
     for (const word of words) {
-       const testLine = currentLine ? `${currentLine} ${word}` : word;
-       const textWidth = fontToUse.widthOfTextAtSize(testLine, 9);
-       
-       if (textWidth > maxValWidth && currentLine) {
-           page.drawText(currentLine, { x: valX, y: currentY, size: 9, font: fontToUse, color: rgb(0.1, 0.1, 0.1) });
-           currentLine = word;
-           currentY -= 12;
-       } else {
-           currentLine = testLine;
-       }
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const textWidth = fontToUse.widthOfTextAtSize(testLine, 9);
+
+      if (textWidth > maxValWidth && currentLine) {
+        page.drawText(currentLine, { x: valX, y: currentY, size: 9, font: fontToUse, color: rgb(0.1, 0.1, 0.1) });
+        currentLine = word;
+        currentY -= 12;
+      } else {
+        currentLine = testLine;
+      }
     }
     if (currentLine) {
-       page.drawText(currentLine, { x: valX, y: currentY, size: 9, font: fontToUse, color: rgb(0.1, 0.1, 0.1) });
+      page.drawText(currentLine, { x: valX, y: currentY, size: 9, font: fontToUse, color: rgb(0.1, 0.1, 0.1) });
     }
-    
+
     return currentY - 15;
   };
 
   currentY = drawSummaryRow('TOTAL AMOUNT:', `INR ${invoice.totalAmount?.toLocaleString('en-IN') || 0}`, currentY);
   currentY = drawSummaryRow('DISCOUNT:', `INR ${invoice.discount?.toLocaleString('en-IN') || 0}`, currentY);
   currentY = drawSummaryRow('PAID AMOUNT:', `INR ${invoice.paidAmount?.toLocaleString('en-IN') || 0}`, currentY);
-  
+
   let paymentModeStr = invoice.paymentMode || 'Cash';
   if (invoice.paymentBreakdown && invoice.paymentBreakdown.length > 0) {
-      paymentModeStr = invoice.paymentBreakdown.map((pb: any) => `${pb.mode}(${pb.amount})`).join(' ');
+    paymentModeStr = invoice.paymentBreakdown.map((pb: any) => `${pb.mode}(${pb.amount})`).join(' ');
   }
   // Shift X left by 40 to give Payment Mode more horizontal space before wrapping
   currentY = drawSummaryRow('PAYMENT MODE:', paymentModeStr, currentY, false, rightValueX - 40);

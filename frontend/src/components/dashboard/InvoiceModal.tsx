@@ -127,7 +127,8 @@ export default function InvoiceModal({ isOpen, onClose, onSave, invoiceToEdit }:
         ...prev,
         paymentBreakdown: newBreakdown,
         paidAmount: newPaid,
-        status: newStatus
+        totalAmount: prev.billingType === 'PENDING DUES' ? newPaid : prev.totalAmount,
+        status: prev.billingType === 'PENDING DUES' ? 'PAID' : newStatus
       };
     });
   };
@@ -143,7 +144,7 @@ export default function InvoiceModal({ isOpen, onClose, onSave, invoiceToEdit }:
     setFormData((prev: any) => {
       const newBreakdown = prev.paymentBreakdown.filter((_: any, i: number) => i !== index);
       const newPaid = newBreakdown.reduce((sum: number, item: any) => sum + (Number(item.amount) || 0), 0);
-      const net = Math.max(0, (prev.totalAmount || 0) - (prev.discount || 0));
+      const net = Math.max(0, (prev.billingType === 'PENDING DUES' ? newPaid : prev.totalAmount || 0) - (prev.discount || 0));
       
       let newStatus = prev.status;
       if (newPaid >= net && net > 0) newStatus = 'PAID';
@@ -154,7 +155,8 @@ export default function InvoiceModal({ isOpen, onClose, onSave, invoiceToEdit }:
         ...prev,
         paymentBreakdown: newBreakdown,
         paidAmount: newPaid,
-        status: newStatus
+        totalAmount: prev.billingType === 'PENDING DUES' ? newPaid : prev.totalAmount,
+        status: prev.billingType === 'PENDING DUES' ? 'PAID' : newStatus
       };
     });
   };
@@ -235,29 +237,64 @@ export default function InvoiceModal({ isOpen, onClose, onSave, invoiceToEdit }:
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.billingType === 'PENDING DUES' && pendingInvoices.length > 0) {
+      let paymentPool = Number(formData.paidAmount) || 0;
+      
+      const collectedServices: string[] = [];
+      const collectedSubServices: string[] = [];
+      const collectedPackages: string[] = [];
+      const collectedSessions: string[] = [];
+
       pendingInvoices.forEach((inv: any) => {
-        const amountToPay = inv.dueAmount;
+        if (paymentPool <= 0) return;
+        
+        const amountToPay = Math.min(paymentPool, inv.dueAmount);
+        paymentPool -= amountToPay;
+        
+        // Collect services for the receipt
+        if (inv.service) collectedServices.push(...(Array.isArray(inv.service) ? inv.service : [inv.service]));
+        if (inv.subService) collectedSubServices.push(...(Array.isArray(inv.subService) ? inv.subService : [inv.subService]));
+        if (inv.packageCategory) collectedPackages.push(...(Array.isArray(inv.packageCategory) ? inv.packageCategory : [inv.packageCategory]));
+        if (inv.sessions) collectedSessions.push(...(Array.isArray(inv.sessions) ? inv.sessions : [inv.sessions]));
+
         const prevBreakdown = inv.paymentBreakdown || [];
         const newBreakdown = [...prevBreakdown];
         newBreakdown.push({
-          mode: formData.paymentMode || 'Cash',
+          mode: formData.paymentBreakdown?.[0]?.mode || 'Cash',
           amount: amountToPay,
           date: new Date().toISOString()
         });
 
+        const newPaidAmount = (inv.paidAmount || 0) + amountToPay;
+        const newDueAmount = Math.max(0, (inv.totalAmount || 0) - (inv.discount || 0) - newPaidAmount);
+        const newStatus = newDueAmount <= 0 ? 'PAID' : 'PARTIALLY PAID';
+
         updateInvoice({
           ...inv,
-          status: 'PAID',
-          paidAmount: inv.totalAmount - (inv.discount || 0),
-          dueAmount: 0,
+          status: newStatus,
+          paidAmount: newPaidAmount,
+          dueAmount: newDueAmount,
           paymentBreakdown: newBreakdown
         });
       });
+      
+      // Force the new receipt to have zero debt and attach collected services
+      formData.totalAmount = formData.paidAmount;
+      formData.dueAmount = 0;
+      formData.status = 'PAID';
+      
+      formData.service = [...new Set(collectedServices)].filter(Boolean);
+      formData.subService = [...new Set(collectedSubServices)].filter(Boolean);
+      formData.packageCategory = [...new Set(collectedPackages)].filter(Boolean);
+      formData.sessions = [...new Set(collectedSessions)].filter(Boolean);
     }
 
     const net = Math.max(0, (formData.totalAmount || 0) - (formData.discount || 0));
-    const calculatedDueAmount = Math.max(0, net - (formData.paidAmount || 0));
-    onSave({ ...formData, dueAmount: calculatedDueAmount });
+    const calculatedDueAmount = formData.billingType === 'PENDING DUES' ? 0 : Math.max(0, net - (formData.paidAmount || 0));
+    onSave({ 
+      ...formData, 
+      dueAmount: calculatedDueAmount,
+      status: formData.billingType === 'PENDING DUES' ? 'PAID' : formData.status 
+    });
   };
 
   const selectedServiceObjs = services ? services.filter((s: any) => Array.isArray(formData.service) && formData.service.includes(s.category)) : [];
@@ -538,7 +575,8 @@ export default function InvoiceModal({ isOpen, onClose, onSave, invoiceToEdit }:
                     name="totalAmount"
                     value={formData.totalAmount}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#5ab2b2] focus:ring-2 focus:ring-teal-500/10 font-medium transition-all"
+                    readOnly={formData.billingType === 'PENDING DUES'}
+                    className={`w-full border border-slate-200 text-slate-700 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#5ab2b2] focus:ring-2 focus:ring-teal-500/10 font-medium transition-all ${formData.billingType === 'PENDING DUES' ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                     required
                   />
                 </div>

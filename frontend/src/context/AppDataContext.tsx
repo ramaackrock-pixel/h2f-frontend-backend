@@ -16,6 +16,7 @@ import type { Patient } from '@/types/patient';
 import type { Appointment } from '@/types/appointment';
 import type { StaffMember } from '@/types/staff';
 import type { MedicalRecord } from '@/types/medicalRecord';
+import toast from 'react-hot-toast';
 import type { Invoice } from '@/types/billing';
 import type { ClinicBranch } from '@/types/branches';
 import type { Doctor } from '@/types/doctor';
@@ -300,18 +301,73 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Medical Records Actions
-  const addMedicalRecord = async (record: MedicalRecord) => {
+  const handleChunkedUpload = async (formData: FormData) => {
+    const file = formData.get('file') as File;
+    const chunkSize = 500 * 1024; // 500KB chunks to bypass Nginx 1MB limit
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const uploadId = Date.now().toString() + '-' + Math.round(Math.random() * 1000);
+
+    toast.loading(`Uploading large document (0%)...`, { id: 'chunk-upload' });
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end, file.type);
+
+      const chunkData = new FormData();
+      chunkData.append('chunk', chunk, file.name); // Need to give chunk a name for multer to parse it as file
+      chunkData.append('uploadId', uploadId);
+      chunkData.append('chunkIndex', i.toString());
+      chunkData.append('totalChunks', totalChunks.toString());
+      chunkData.append('fileName', file.name);
+      
+      // Append all other metadata
+      formData.forEach((value, key) => {
+        if (key !== 'file') {
+          chunkData.append(key, value);
+        }
+      });
+
+      const percent = Math.round(((i + 1) / totalChunks) * 100);
+      toast.loading(`Uploading large document (${percent}%)...`, { id: 'chunk-upload' });
+
+      const result = await medicalRecordService.uploadChunk(chunkData);
+      
+      if (result.finished) {
+        toast.dismiss('chunk-upload');
+        toast.success('Document uploaded successfully!');
+        return result.data;
+      }
+    }
+  };
+
+  const addMedicalRecord = async (record: any) => {
     try {
-      const created = await medicalRecordService.create(record);
-      const recordWithId = { 
-        ...created, 
-        id: created._id || created.id,
-        initials: created.patientName ? created.patientName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'UN',
-        initialsBg: 'bg-indigo-100 text-indigo-700'
-      };
-      setMedicalRecords(prev => [recordWithId, ...prev]);
+      let created;
+      if (record instanceof FormData && record.get('file')) {
+        const file = record.get('file') as File;
+        // If file is larger than 1MB, chunk it (especially PDFs which we don't compress)
+        if (file.size > 1024 * 1024) {
+          created = await handleChunkedUpload(record);
+        } else {
+          created = await medicalRecordService.create(record);
+        }
+      } else {
+        created = await medicalRecordService.create(record);
+      }
+      
+      if (created) {
+        const recordWithId = { 
+          ...created, 
+          id: created._id || created.id,
+          initials: created.patientName ? created.patientName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'UN',
+          initialsBg: 'bg-indigo-100 text-indigo-700'
+        };
+        setMedicalRecords(prev => [recordWithId, ...prev]);
+      }
     } catch (err) {
+      toast.dismiss('chunk-upload');
+      toast.error('Failed to upload document');
       console.error("Failed to add medical record", err);
     }
   };
